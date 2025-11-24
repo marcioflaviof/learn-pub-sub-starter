@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
+	"log"
 
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -19,15 +19,22 @@ func main() {
 	}
 	defer conn.Close()
 
-	fmt.Println("Connection Successfull")
+	publishCh, err := conn.Channel()
+	if err != nil {
+		log.Fatalf("could not create channel: %v", err)
+	}
 
-	// Wait for interrupt signal to gracefully shutdown
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	err = pubsub.PublishJSON(
+		publishCh,
+		routing.ExchangePerilDirect,
+		routing.PauseKey,
+		routing.PlayingState{
+			IsPaused: true,
+		},
+	)
+	if err != nil {
+		log.Printf("could not publish time: %v", err)
+	}
 
-	fmt.Println("Press Ctrl+C to exit...")
-	<-sigs
-	fmt.Println("Shutting down.")
-
-	conn.Close()
+	fmt.Println("Pause message sent!")
 }
