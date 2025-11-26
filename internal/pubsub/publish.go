@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/rabbitmq/amqp091-go"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func PublishJSON[T any](ch *amqp091.Channel, exchange, key string, val T) error {
+func PublishJSON[T any](ch *amqp.Channel, exchange, key string, val T) error {
 	dat, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func PublishJSON[T any](ch *amqp091.Channel, exchange, key string, val T) error 
 		key,
 		false,
 		false,
-		amqp091.Publishing{
+		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        dat,
 		})
